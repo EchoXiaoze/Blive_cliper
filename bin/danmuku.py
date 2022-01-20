@@ -86,7 +86,7 @@ def 处理弹幕(clipman_list,comment,send_user,ts:int,开播时间,WORKING_DIR,
 def 解析弹幕指令(弹幕指令: str) -> Tuple[str, int, str]:
     分隔符 = [" ", "，", ","]
     分割符正则 = f'(?:{"|".join(分隔符)})'
-    弹幕指令正则表达式 = rf"@(开切|结束){分割符正则}(-?\d+)(?:{分割符正则}(.+))"
+    弹幕指令正则表达式 = rf"@(开切|结束){分割符正则}(-?\d+)(?:{分割符正则}(.+))?"
     if not (匹配结果 := re.match(弹幕指令正则表达式, 弹幕指令)):
         return None
     操作, 偏移量, 标题 = 匹配结果.groups()
