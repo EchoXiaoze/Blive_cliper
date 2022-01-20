@@ -82,16 +82,18 @@ def 处理弹幕(clipman_list,comment,send_user,ts:int,开播时间,WORKING_DIR,
                 接收到的弹幕指令['结束时间']=_convert_time(sec=(ts-开播时间+int(偏移量)))
                 接收到的弹幕指令['文件名']=标题
                 make_clips(WORKING_DIR,live_name)
+    
 
 def 解析弹幕指令(弹幕指令: str) -> Tuple[str, int, str]:
     分隔符 = [" ", "，", ","]
     分割符正则 = f'(?:{"|".join(分隔符)})'
     弹幕指令正则表达式 = rf"@(开切|结束){分割符正则}(-?\d+)(?:{分割符正则}(.+))?"
+    # print(弹幕指令正则表达式)
     if not (匹配结果 := re.match(弹幕指令正则表达式, 弹幕指令)):
         return None
     操作, 偏移量, 标题 = 匹配结果.groups()
     偏移量 = int(偏移量)
-    print(操作, 偏移量, 标题)
+    # print(操作, 偏移量, 标题)
     return (操作, 偏移量, 标题)
 
 
@@ -131,7 +133,9 @@ def make_clips(WORKING_PATH,live_name:Path):
                 clip_path / Path(f"{接收到的弹幕指令['文件名']}.mp4"),  # 输出文件路径
                 "-y",
             ]
+    print(f"[For_Rina][信息]: 正在制作-【{接收到的弹幕指令['文件名']}.mp4】 【开始时间{接收到的弹幕指令['开切时间']}——结束时间{接收到的弹幕指令['结束时间']}】")
     subprocess.run(
                 cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
+    
     
