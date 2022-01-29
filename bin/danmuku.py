@@ -18,7 +18,7 @@ from .const import Dirs
 
 
 def Get_danmu(uid,clipman_list,WORKING_DIR):
-    开播时间=(int(time.time()))
+    
     Api=Get_api(uid)
     live_room=Api['live_room']
     live_title=Api['live_title']
@@ -33,7 +33,7 @@ def Get_danmu(uid,clipman_list,WORKING_DIR):
         send_user = event['data']['info'][2][1]
         ts=event['data']['info'][9]['ts']
         print(f"[{unix_convert(ts,flag=0)}]'{send_user}' : '{comment}'")
-        处理弹幕(clipman_list,comment,send_user,ts,开播时间,WORKING_DIR,live_name)
+        处理弹幕(clipman_list, comment, send_user, ts, WORKING_DIR, live_name)
         
     sync(room.connect())
 
@@ -67,21 +67,26 @@ def _convert_time(sec: int) -> str:
         return f"{hour:02}:{minute:02}:{sec:02}"
 
 
-def 处理弹幕(clipman_list,comment,send_user,ts:int,开播时间,WORKING_DIR,live_name):
+def 处理弹幕(clipman_list,comment,send_user,ts:int,WORKING_DIR,live_name):
     # regex = r"@(开切|结束)(?:\s+|，|,)(\d+)(?:(?:，|,|\s*)(\w+))?"
     # match = re.match(regex,comment)
     if 匹配结果 := 解析弹幕指令(comment):
         操作, 偏移量, 标题 = 匹配结果
         # print( 操作, 偏移量, 标题)
-    
-    
-        if send_user in clipman_list:
-            if 操作 == '开切':
-                接收到的弹幕指令['开切时间']=_convert_time(sec=(ts-开播时间-int(偏移量)))
-            elif 操作 == '结束':
-                接收到的弹幕指令['结束时间']=_convert_time(sec=(ts-开播时间+int(偏移量)))
-                接收到的弹幕指令['文件名']=标题
-                make_clips(WORKING_DIR,live_name)
+    rec_path = WORKING_DIR / Dirs.records.value / live_name
+    for file in rec_path.iterdir():
+        rec_file = file
+    p=Path(rec_file)
+    开播时间 = int(p.stat().st_ctime)
+
+
+    if send_user in clipman_list:
+        if 操作 == '开切':
+            接收到的弹幕指令['开切时间']=_convert_time(sec=(ts-开播时间-int(偏移量)+6)) #+6是为了弥补网络延迟带来的提前开切的问题
+        elif 操作 == '结束':
+            接收到的弹幕指令['结束时间']=_convert_time(sec=(ts-开播时间+int(偏移量)+9)) #+9是为了弥补网络延迟带来的提前结束的问题
+            接收到的弹幕指令['文件名']=标题
+            make_clips(WORKING_DIR,live_name)
     
 
 def 解析弹幕指令(弹幕指令: str) -> Tuple[str, int, str]:
@@ -108,7 +113,6 @@ def check_danmu(comment):#匹配开始弹幕
 
 def make_clips(WORKING_PATH,live_name:Path):
     rec_path = WORKING_PATH / Dirs.records.value / live_name
-    # print(rec_path)
     for file in rec_path.iterdir():
         rec_file = file
         '''
